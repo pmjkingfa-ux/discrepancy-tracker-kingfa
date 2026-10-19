@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14232B">
+<title>Discrepancy Tracker</title>
+<style>
+  :root {
+    --bg: #E9EDEF; --card: #FFFFFF; --ink: #14232B; --muted: #5B6B73; --line: #C9D2D6;
+    --accent: #1856C4; --ok: #1E7B3A; --okbg: #E3F3E8; --warn: #9A5B00; --warnbg: #FFF1D6; --err: #B3261E; --errbg: #FBE7E5;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  header { background: var(--ink); color: #fff; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+  header p { margin: 2px 0 0; font-size: .82rem; color: #A9BAC2; }
+  header button { font: inherit; font-size: .85rem; font-weight: 600; color: #fff; background: transparent; border: 1.5px solid #5E727C; border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
+  textarea, input[type=search] { width: 100%; font: inherit; font-size: 1.02rem; padding: 12px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
+  textarea { min-height: 110px; resize: vertical; }
+  textarea:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .primary { width: 100%; margin-top: 10px; font: inherit; font-size: 1.05rem; font-weight: 700; padding: 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
+  .primary:disabled { opacity: .6; cursor: progress; }
+  #status { margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: .9rem; display: none; }
+  #status.show { display: block; }
+  #status.ok { background: var(--okbg); color: var(--ok); }
+  #status.err { background: var(--errbg); color: var(--err); }
+  #status.warn { background: var(--warnbg); color: var(--warn); }
+  .counts { display: flex; gap: 10px; margin: 16px 0 10px; }
+  .count { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .count b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+  .count span { font-size: .78rem; color: var(--muted); }
+  .count.open b { color: var(--warn); } .count.done b { color: var(--ok); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tab { flex: 1; font: inherit; font-weight: 600; font-size: .92rem; padding: 9px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+  .tab[aria-selected=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .search { margin-bottom: 10px; }
+  .item { background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--warn); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+  .item.resolved { border-left-color: var(--ok); }
+  .top { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; color: var(--muted); }
+  .top b { color: var(--ink); }
+  .details { margin: 6px 0 8px; font-size: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .meta { font-size: .82rem; font-weight: 600; }
+  .meta.open { color: var(--warn); } .meta.done { color: var(--ok); }
+  .note { margin-top: 4px; font-size: .85rem; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .actions { margin-top: 10px; }
+  .btn { font: inherit; font-weight: 700; font-size: .92rem; padding: 9px 14px; border-radius: 8px; border: 1.5px solid var(--ok); background: var(--ok); color: #fff; cursor: pointer; }
+  .btn.ghost { background: #fff; color: var(--ink); border-color: var(--line); }
+  .btn:disabled { opacity: .6; }
+  .empty { text-align: center; color: var(--muted); padding: 24px 8px; font-size: .95rem; }
+  .foot { text-align: center; font-size: .78rem; color: var(--muted); margin: 14px 0 6px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Discrepancy Tracker</h1>
+    <p id="sync">Not synced yet</p>
+  </div>
+  <button id="csv" type="button">Download Excel</button>
+</header>
+
+<main>
+  <div class="box">
+    <label for="details">What's the discrepancy? Write it roughly.</label>
+    <textarea id="details" placeholder="e.g. Invoice 12342, TN32AB1234 loaded 25 MT but plan was 24 MT. Customer called at gate."></textarea>
+    <button class="primary" id="add" type="button">Log discrepancy</button>
+    <div id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="counts">
+    <div class="count open"><b id="nOpen">0</b><span>Open</span></div>
+    <div class="count done"><b id="nToday">0</b><span>Resolved today</span></div>
+    <div class="count"><b id="nAvg">–</b><span>Avg hours to resolve</span></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="open" aria-selected="true">Open</button>
+    <button class="tab" role="tab" data-t="resolved" aria-selected="false">Resolved</button>
+    <button class="tab" role="tab" data-t="all" aria-selected="false">All</button>
+  </div>
+  <input class="search" id="q" type="search" placeholder="Search details, invoice, vehicle…">
+
+  <div id="list"></div>
+  <div class="foot">Every entry is also saved as a row in your Google Sheet.</div>
+</main>
+
+<script>
+/* ====== SET THIS after deploying Code.gs as a web app ====== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2coVqQNEBzL4ITbY34LEwgbG9j--nVv4nlLruPGm8VCp1r9IqJD3pWENSKC4IAjuN/exec";
+/* ========================================================== */
+
+const $ = id => document.getElementById(id);
+const LS_CODE = "disc_code_v1", LS_CACHE = "disc_cache_v1";
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+let items = load(LS_CACHE, []);
+let tab = "open";
+let busy = false;
+
+const p2 = n => String(n).padStart(2, "0");
+function fmt(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${p2(d.getDate())}-${p2(d.getMonth() + 1)}-${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+}
+function dur(ms) {
+  const m = Math.max(0, Math.floor(ms / 60000));
+  if (m < 1) return "under 1 min";
+  const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+  if (d) return `${d}d ${h}h`;
+  if (h) return `${h}h ${mm}m`;
+  return `${mm}m`;
+}
+const hours = it => (new Date(it.resolved) - new Date(it.logged)) / 3600000;
+
+function status(msg, kind, label, fn) {
+  const s = $("status");
+  s.className = "show " + kind; s.textContent = msg;
+  if (label) { const b = document.createElement("button"); b.type = "button"; b.className = "btn ghost"; b.style.marginLeft = "8px"; b.textContent = label; b.onclick = fn; s.appendChild(b); }
+}
+const clearStatus = () => { $("status").className = ""; };
+
+async function call(method, payload) {
+  const code = load(LS_CODE, "");
+  let url = SCRIPT_URL, opt = { method };
+  if (method === "GET") url += "?action=list&code=" + encodeURIComponent(code);
+  else opt.body = JSON.stringify({ ...payload, code });
+  const r = await (await fetch(url, opt)).json();
+  if (r.error === "unauthorized") {
+    const c = prompt("Enter the access code");
+    if (c) { save(LS_CODE, c); return call(method, payload); }
+  }
+  return r;
+}
+
+async function refresh(quiet) {
+  if (SCRIPT_URL.startsWith("PASTE_")) { status("Set SCRIPT_URL in index.html first.", "err"); return; }
+  try {
+    const r = await call("GET");
+    if (r.ok) {
+      items = r.items; save(LS_CACHE, items);
+      $("sync").textContent = "Synced " + p2(new Date().getHours()) + ":" + p2(new Date().getMinutes());
+      render();
+    } else if (!quiet) status(r.error || "Could not load.", "err");
+  } catch (e) {
+    $("sync").textContent = "Offline, showing saved copy";
+  }
+}
+
+function render() {
+  const open = items.filter(i => i.status === "OPEN");
+  const done = items.filter(i => i.status === "RESOLVED");
+  const today = new Date().toDateString();
+  const dToday = done.filter(i => new Date(i.resolved).toDateString() === today);
+  $("nOpen").textContent = open.length;
+  $("nToday").textContent = dToday.length;
+  $("nAvg").textContent = done.length ? (done.reduce((a, i) => a + hours(i), 0) / done.length).toFixed(1) : "–";
+
+  let list = tab === "open" ? open : tab === "resolved" ? done : items.slice();
+  const q = $("q").value.trim().toLowerCase();
+  if (q) list = list.filter(i => (i.details + " " + i.note + " " + i.id).toLowerCase().includes(q));
+  if (tab === "open") list.sort((a, b) => new Date(a.logged) - new Date(b.logged));          // oldest first
+  else if (tab === "resolved") list.sort((a, b) => new Date(b.resolved) - new Date(a.resolved));
+  else list.sort((a, b) => new Date(b.logged) - new Date(a.logged));
+
+  const box = $("list"); box.textContent = "";
+  if (!list.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = tab === "open" ? "No open discrepancies." : "Nothing here."; box.appendChild(e); return; }
+
+  list.forEach(it => {
+    const isDone = it.status === "RESOLVED";
+    const el = document.createElement("div"); el.className = "item" + (isDone ? " resolved" : "");
+    const top = document.createElement("div"); top.className = "top";
+    const a = document.createElement("b"); a.textContent = it.id;
+    const b = document.createElement("span"); b.textContent = "Logged " + fmt(it.logged);
+    top.append(a, b);
+    const det = document.createElement("div"); det.className = "details"; det.textContent = it.details;
+    const meta = document.createElement("div"); meta.className = "meta " + (isDone ? "done" : "open");
+    meta.textContent = isDone
+      ? `Resolved ${fmt(it.resolved)} · took ${dur(new Date(it.resolved) - new Date(it.logged))}`
+      : `Open for ${dur(Date.now() - new Date(it.logged))}`;
+    el.append(top, det, meta);
+    if (isDone && it.note) { const n = document.createElement("div"); n.className = "note"; n.textContent = "Note: " + it.note; el.appendChild(n); }
+    const act = document.createElement("div"); act.className = "actions";
+    const btn = document.createElement("button"); btn.type = "button";
+    if (isDone) { btn.className = "btn ghost"; btn.textContent = "Reopen"; btn.onclick = () => change(it, "reopen", btn); }
+    else { btn.className = "btn"; btn.textContent = "Mark resolved"; btn.onclick = () => change(it, "resolve", btn); }
+    act.appendChild(btn); el.appendChild(act);
+    box.appendChild(el);
+  });
+}
+
+async function change(it, action, btn) {
+  let note = "";
+  if (action === "resolve") {
+    note = prompt("How was it resolved? (optional)", "");
+    if (note === null) return;
+  }
+  btn.disabled = true;
+  try {
+    const r = await call("POST", { action, id: it.id, note });
+    if (r.ok) {
+      if (action === "resolve") { it.status = "RESOLVED"; it.resolved = r.resolved; it.note = note.trim(); }
+      else { it.status = "OPEN"; it.resolved = ""; }
+      save(LS_CACHE, items); render(); clearStatus();
+    } else { status(r.error || "Could not update.", "err"); btn.disabled = false; }
+  } catch { status("No connection. Try again when online.", "warn"); btn.disabled = false; }
+}
+
+$("add").addEventListener("click", async () => {
+  clearStatus();
+  if (SCRIPT_URL.startsWith("PASTE_")) { status("Set SCRIPT_URL in index.html first.", "err"); return; }
+  const details = $("details").value.trim();
+  if (!details) { status("Write the details first.", "err"); return; }
+  const btn = $("add"); btn.disabled = true; btn.textContent = "Saving…";
+  try {
+    const r = await call("POST", { action: "add", details });
+    if (r.ok) {
+      items.push({ id: r.id, logged: r.logged, details, status: "OPEN", resolved: "", note: "" });
+      save(LS_CACHE, items);
+      $("details").value = ""; status(`Logged as ${r.id}.`, "ok");
+      tab = "open"; setTabs(); render();
+    } else status(r.error || "The sheet rejected this entry.", "err");
+  } catch { status("No connection. Your text is still in the box. Try again.", "warn"); }
+  btn.disabled = false; btn.textContent = "Log discrepancy";
+});
+
+function setTabs() { document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.t === tab)); }
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { tab = t.dataset.t; setTabs(); render(); }));
+$("q").addEventListener("input", render);
+
+$("csv").addEventListener("click", () => {
+  const esc = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const rows = [["ID", "LOGGED AT", "DETAILS", "STATUS", "RESOLVED AT", "HOURS TO RESOLVE", "RESOLUTION NOTE"]];
+  items.slice().sort((a, b) => new Date(a.logged) - new Date(b.logged)).forEach(i =>
+    rows.push([i.id, fmt(i.logged), i.details, i.status, fmt(i.resolved), i.status === "RESOLVED" ? hours(i).toFixed(2) : "", i.note]));
+  const blob = new Blob(["\ufeff" + rows.map(r => r.map(esc).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  const d = new Date();
+  a.href = URL.createObjectURL(blob);
+  a.download = `discrepancies_${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+
+setInterval(render, 30000);                       // keeps "open for…" ticking
+setInterval(() => refresh(true), 60000);          // picks up changes from other phones
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(true); });
+render(); refresh();
+</script>
+</body>
+</html>
