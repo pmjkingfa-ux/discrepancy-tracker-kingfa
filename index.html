@@ -1,258 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#14232B">
 <title>Discrepancy Tracker</title>
 <style>
-  :root {
-    --bg: #E9EDEF; --card: #FFFFFF; --ink: #14232B; --muted: #5B6B73; --line: #C9D2D6;
-    --accent: #1856C4; --ok: #1E7B3A; --okbg: #E3F3E8; --warn: #9A5B00; --warnbg: #FFF1D6; --err: #B3261E; --errbg: #FBE7E5;
-  }
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
-  header { background: var(--ink); color: #fff; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
-  header p { margin: 2px 0 0; font-size: .82rem; color: #A9BAC2; }
-  header button { font: inherit; font-size: .85rem; font-weight: 600; color: #fff; background: transparent; border: 1.5px solid #5E727C; border-radius: 8px; padding: 7px 11px; cursor: pointer; }
-  main { max-width: 640px; margin: 0 auto; padding: 16px; }
-  .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-  label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
-  textarea, input[type=search] { width: 100%; font: inherit; font-size: 1.02rem; padding: 12px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); }
-  textarea { min-height: 110px; resize: vertical; }
-  textarea:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
-  .primary { width: 100%; margin-top: 10px; font: inherit; font-size: 1.05rem; font-weight: 700; padding: 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
-  .primary:disabled { opacity: .6; cursor: progress; }
-  #status { margin-top: 10px; padding: 10px 12px; border-radius: 8px; font-size: .9rem; display: none; }
-  #status.show { display: block; }
-  #status.ok { background: var(--okbg); color: var(--ok); }
-  #status.err { background: var(--errbg); color: var(--err); }
-  #status.warn { background: var(--warnbg); color: var(--warn); }
-  .counts { display: flex; gap: 10px; margin: 16px 0 10px; }
-  .count { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-  .count b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
-  .count span { font-size: .78rem; color: var(--muted); }
-  .count.open b { color: var(--warn); } .count.done b { color: var(--ok); }
-  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-  .tab { flex: 1; font: inherit; font-weight: 600; font-size: .92rem; padding: 9px; border-radius: 8px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
-  .tab[aria-selected=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .search { margin-bottom: 10px; }
-  .item { background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--warn); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
-  .item.resolved { border-left-color: var(--ok); }
-  .top { display: flex; justify-content: space-between; gap: 8px; font-size: .78rem; color: var(--muted); }
-  .top b { color: var(--ink); }
-  .details { margin: 6px 0 8px; font-size: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-  .meta { font-size: .82rem; font-weight: 600; }
-  .meta.open { color: var(--warn); } .meta.done { color: var(--ok); }
-  .note { margin-top: 4px; font-size: .85rem; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .actions { margin-top: 10px; }
-  .btn { font: inherit; font-weight: 700; font-size: .92rem; padding: 9px 14px; border-radius: 8px; border: 1.5px solid var(--ok); background: var(--ok); color: #fff; cursor: pointer; }
-  .btn.ghost { background: #fff; color: var(--ink); border-color: var(--line); }
-  .btn:disabled { opacity: .6; }
-  .empty { text-align: center; color: var(--muted); padding: 24px 8px; font-size: .95rem; }
-  .foot { text-align: center; font-size: .78rem; color: var(--muted); margin: 14px 0 6px; }
-</style>
-</head>
-<body>
-<header>
-  <div>
-    <h1>Discrepancy Tracker</h1>
-    <p id="sync">Not synced yet</p>
-  </div>
-  <button id="csv" type="button">Download Excel</button>
-</header>
-
+:root{--bg:#E9EDEF;--card:#fff;--ink:#14232B;--muted:#5B6B73;--line:#C9D2D6;--accent:#1856C4;--ok:#1E7B3A;--warn:#9A5B00;--err:#B3261E}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header h1{margin:0;font-size:1.2rem}header p{margin:2px 0 0;font-size:.8rem;color:#A9BAC2}
+main{max-width:680px;margin:0 auto;padding:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:.82rem;font-weight:600;margin:10px 0 4px}label:first-child{margin-top:0}
+textarea,input,select{width:100%;font:inherit;font-size:1rem;padding:10px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:100px;resize:vertical}
+:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+details.more{margin-top:10px}details.more summary{cursor:pointer;font-weight:600;font-size:.9rem;color:var(--accent)}
+button{font:inherit;cursor:pointer}
+.primary{width:100%;margin-top:12px;font-size:1.05rem;font-weight:700;padding:13px;border:0;border-radius:8px;background:var(--accent);color:#fff}
+.btn{font-weight:700;font-size:.88rem;padding:8px 13px;border-radius:8px;border:1.5px solid var(--ok);background:var(--ok);color:#fff}
+.btn.g{background:#fff;color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.6}
+.hb{font-weight:600;font-size:.82rem;color:#fff;background:transparent;border:1.5px solid #5E727C;border-radius:8px;padding:7px 10px}
+#st{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:.9rem}#st.show{display:block}
+#st.ok{background:#E3F3E8;color:var(--ok)}#st.err{background:#FBE7E5;color:var(--err)}#st.warn{background:#FFF1D6;color:var(--warn)}
+.counts{display:flex;gap:8px;margin-bottom:10px}.count{flex:1;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.count b{display:block;font-size:1.4rem}.count span{font-size:.75rem;color:var(--muted)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tab{flex:1;font-weight:600;font-size:.88rem;padding:9px 4px;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.tab[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.item{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--warn);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.item.r{border-left-color:var(--ok)}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:.78rem;color:var(--muted)}.top b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.chip{font-size:.74rem;font-weight:600;background:#EEF2F4;border-radius:20px;padding:2px 9px}
+.chip.High{background:#F6C9C5;color:var(--err)}.chip.Low{color:var(--muted)}
+.det{margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{font-size:.82rem;font-weight:600;color:var(--warn)}.meta.d{color:var(--ok)}
+.note{margin-top:4px;font-size:.85rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.ph{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.ph a,.ph span{position:relative;display:block}.ph img{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+.ph i{position:absolute;top:-6px;right:-6px;background:var(--err);color:#fff;border-radius:50%;width:20px;height:20px;font-style:normal;font-size:.8rem;text-align:center;line-height:20px;cursor:pointer}
+.acts{margin-top:10px;display:flex;gap:8px}
+.empty{text-align:center;color:var(--muted);padding:22px}
+.tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}.tile{background:#F4F7F8;border-radius:8px;padding:8px 10px}.tile b{display:block;font-size:1.3rem}.tile span{font-size:.74rem;color:var(--muted)}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:.92rem}
+h3{margin:14px 0 4px;font-size:.95rem}
+dialog{border:0;border-radius:12px;padding:16px;width:min(560px,94vw);max-height:92vh}dialog::backdrop{background:rgba(0,0,0,.5)}
+</style></head><body>
+<header><div><h1>Discrepancy Tracker</h1><p id="sync">Not synced yet</p></div><button class="hb" id="csv">Download Excel</button></header>
 <main>
-  <div class="box">
-    <label for="details">What's the discrepancy? Write it roughly.</label>
-    <textarea id="details" placeholder="e.g. Invoice 12342, TN32AB1234 loaded 25 MT but plan was 24 MT. Customer called at gate."></textarea>
-    <button class="primary" id="add" type="button">Log discrepancy</button>
-    <div id="status" role="status" aria-live="polite"></div>
-  </div>
-
-  <div class="counts">
-    <div class="count open"><b id="nOpen">0</b><span>Open</span></div>
-    <div class="count done"><b id="nToday">0</b><span>Resolved today</span></div>
-    <div class="count"><b id="nAvg">–</b><span>Avg hours to resolve</span></div>
-  </div>
-
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-t="open" aria-selected="true">Open</button>
-    <button class="tab" role="tab" data-t="resolved" aria-selected="false">Resolved</button>
-    <button class="tab" role="tab" data-t="all" aria-selected="false">All</button>
-  </div>
-  <input class="search" id="q" type="search" placeholder="Search details, invoice, vehicle…">
-
-  <div id="list"></div>
-  <div class="foot">Every entry is also saved as a row in your Google Sheet.</div>
+<div class="box">
+  <label for="details">What's the discrepancy? Write it roughly.</label>
+  <textarea id="details" placeholder="e.g. Loaded 25 MT but plan was 24 MT, customer called at gate"></textarea>
+  <details class="more"><summary>Add vehicle, invoice, category, priority, owner, photos (optional)</summary>
+    <div class="g2"><div><label for="veh">Vehicle no</label><input id="veh" autocapitalize="characters"></div><div><label for="inv">Invoice no</label><input id="inv"></div></div>
+    <div class="g2"><div><label for="cat">Category</label><select id="cat"></select></div><div><label for="prio">Priority</label><select id="prio"><option>Low</option><option selected>Medium</option><option>High</option></select></div></div>
+    <label for="owner">Owner (who is handling it)</label><input id="owner" list="owners">
+    <label for="ph">Photos</label><input id="ph" type="file" accept="image/*" multiple><div class="ph" id="pv"></div>
+  </details>
+  <button class="primary" id="add">Log discrepancy</button><div id="st" role="status" aria-live="polite"></div>
+</div>
+<div class="counts"><div class="count"><b id="nO" style="color:var(--warn)">0</b><span>Open</span></div><div class="count"><b id="nT" style="color:var(--ok)">0</b><span>Resolved today</span></div><div class="count"><b id="nH" style="color:var(--err)">0</b><span>High priority open</span></div></div>
+<div class="tabs" role="tablist"><button class="tab" data-t="open" aria-selected="true">Open</button><button class="tab" data-t="resolved" aria-selected="false">Resolved</button><button class="tab" data-t="all" aria-selected="false">All</button><button class="tab" data-t="sum" aria-selected="false">Summary</button></div>
+<div id="lv"><input id="q" type="search" placeholder="Search details, vehicle, invoice, owner, category…" style="margin-bottom:10px"><div id="list"></div></div>
+<div id="sv" hidden class="box"><select id="per"><option value="tw">This week</option><option value="lw">Last week</option><option value="tm">This month</option><option value="30">Last 30 days</option><option value="all">All time</option></select><div id="sbody"></div><button class="btn g" id="cp" style="margin-top:12px">Copy summary</button></div>
 </main>
-
+<datalist id="owners"></datalist>
+<dialog id="dlg"><h2 style="margin:0 0 8px;font-size:1.1rem" id="eh">Edit</h2>
+  <label for="e_d">Details</label><textarea id="e_d"></textarea>
+  <div class="g2"><div><label for="e_v">Vehicle no</label><input id="e_v" autocapitalize="characters"></div><div><label for="e_i">Invoice no</label><input id="e_i"></div></div>
+  <div class="g2"><div><label for="e_c">Category</label><select id="e_c"></select></div><div><label for="e_p">Priority</label><select id="e_p"><option>Low</option><option>Medium</option><option>High</option></select></div></div>
+  <label for="e_o">Owner</label><input id="e_o" list="owners"><label for="e_n">Resolution note</label><input id="e_n">
+  <label for="e_f">Add photos</label><input id="e_f" type="file" accept="image/*" multiple><div class="ph" id="e_pv"></div>
+  <div class="acts"><button class="btn" id="e_s">Save changes</button><button class="btn g" id="e_x">Cancel</button></div><div id="e_st" style="color:var(--err);font-size:.88rem;margin-top:8px"></div>
+</dialog>
 <script>
 /* ====== SET THIS after deploying Code.gs as a web app ====== */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw2coVqQNEBzL4ITbY34LEwgbG9j--nVv4nlLruPGm8VCp1r9IqJD3pWENSKC4IAjuN/exec";
 /* ========================================================== */
-
-const $ = id => document.getElementById(id);
-const LS_CODE = "disc_code_v1", LS_CACHE = "disc_cache_v1";
-const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
-const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-
-let items = load(LS_CACHE, []);
-let tab = "open";
-let busy = false;
-
-const p2 = n => String(n).padStart(2, "0");
-function fmt(iso) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return `${p2(d.getDate())}-${p2(d.getMonth() + 1)}-${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
-}
-function dur(ms) {
-  const m = Math.max(0, Math.floor(ms / 60000));
-  if (m < 1) return "under 1 min";
-  const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
-  if (d) return `${d}d ${h}h`;
-  if (h) return `${h}h ${mm}m`;
-  return `${mm}m`;
-}
-const hours = it => (new Date(it.resolved) - new Date(it.logged)) / 3600000;
-
-function status(msg, kind, label, fn) {
-  const s = $("status");
-  s.className = "show " + kind; s.textContent = msg;
-  if (label) { const b = document.createElement("button"); b.type = "button"; b.className = "btn ghost"; b.style.marginLeft = "8px"; b.textContent = label; b.onclick = fn; s.appendChild(b); }
-}
-const clearStatus = () => { $("status").className = ""; };
-
-async function call(method, payload) {
-  const code = load(LS_CODE, "");
-  let url = SCRIPT_URL, opt = { method };
-  if (method === "GET") url += "?action=list&code=" + encodeURIComponent(code);
-  else opt.body = JSON.stringify({ ...payload, code });
-  const r = await (await fetch(url, opt)).json();
-  if (r.error === "unauthorized") {
-    const c = prompt("Enter the access code");
-    if (c) { save(LS_CODE, c); return call(method, payload); }
-  }
-  return r;
-}
-
-async function refresh(quiet) {
-  if (SCRIPT_URL.startsWith("PASTE_")) { status("Set SCRIPT_URL in index.html first.", "err"); return; }
-  try {
-    const r = await call("GET");
-    if (r.ok) {
-      items = r.items; save(LS_CACHE, items);
-      $("sync").textContent = "Synced " + p2(new Date().getHours()) + ":" + p2(new Date().getMinutes());
-      render();
-    } else if (!quiet) status(r.error || "Could not load.", "err");
-  } catch (e) {
-    $("sync").textContent = "Offline, showing saved copy";
-  }
-}
-
-function render() {
-  const open = items.filter(i => i.status === "OPEN");
-  const done = items.filter(i => i.status === "RESOLVED");
-  const today = new Date().toDateString();
-  const dToday = done.filter(i => new Date(i.resolved).toDateString() === today);
-  $("nOpen").textContent = open.length;
-  $("nToday").textContent = dToday.length;
-  $("nAvg").textContent = done.length ? (done.reduce((a, i) => a + hours(i), 0) / done.length).toFixed(1) : "–";
-
-  let list = tab === "open" ? open : tab === "resolved" ? done : items.slice();
-  const q = $("q").value.trim().toLowerCase();
-  if (q) list = list.filter(i => (i.details + " " + i.note + " " + i.id).toLowerCase().includes(q));
-  if (tab === "open") list.sort((a, b) => new Date(a.logged) - new Date(b.logged));          // oldest first
-  else if (tab === "resolved") list.sort((a, b) => new Date(b.resolved) - new Date(a.resolved));
-  else list.sort((a, b) => new Date(b.logged) - new Date(a.logged));
-
-  const box = $("list"); box.textContent = "";
-  if (!list.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = tab === "open" ? "No open discrepancies." : "Nothing here."; box.appendChild(e); return; }
-
-  list.forEach(it => {
-    const isDone = it.status === "RESOLVED";
-    const el = document.createElement("div"); el.className = "item" + (isDone ? " resolved" : "");
-    const top = document.createElement("div"); top.className = "top";
-    const a = document.createElement("b"); a.textContent = it.id;
-    const b = document.createElement("span"); b.textContent = "Logged " + fmt(it.logged);
-    top.append(a, b);
-    const det = document.createElement("div"); det.className = "details"; det.textContent = it.details;
-    const meta = document.createElement("div"); meta.className = "meta " + (isDone ? "done" : "open");
-    meta.textContent = isDone
-      ? `Resolved ${fmt(it.resolved)} · took ${dur(new Date(it.resolved) - new Date(it.logged))}`
-      : `Open for ${dur(Date.now() - new Date(it.logged))}`;
-    el.append(top, det, meta);
-    if (isDone && it.note) { const n = document.createElement("div"); n.className = "note"; n.textContent = "Note: " + it.note; el.appendChild(n); }
-    const act = document.createElement("div"); act.className = "actions";
-    const btn = document.createElement("button"); btn.type = "button";
-    if (isDone) { btn.className = "btn ghost"; btn.textContent = "Reopen"; btn.onclick = () => change(it, "reopen", btn); }
-    else { btn.className = "btn"; btn.textContent = "Mark resolved"; btn.onclick = () => change(it, "resolve", btn); }
-    act.appendChild(btn); el.appendChild(act);
-    box.appendChild(el);
-  });
-}
-
-async function change(it, action, btn) {
-  let note = "";
-  if (action === "resolve") {
-    note = prompt("How was it resolved? (optional)", "");
-    if (note === null) return;
-  }
-  btn.disabled = true;
-  try {
-    const r = await call("POST", { action, id: it.id, note });
-    if (r.ok) {
-      if (action === "resolve") { it.status = "RESOLVED"; it.resolved = r.resolved; it.note = note.trim(); }
-      else { it.status = "OPEN"; it.resolved = ""; }
-      save(LS_CACHE, items); render(); clearStatus();
-    } else { status(r.error || "Could not update.", "err"); btn.disabled = false; }
-  } catch { status("No connection. Try again when online.", "warn"); btn.disabled = false; }
-}
-
-$("add").addEventListener("click", async () => {
-  clearStatus();
-  if (SCRIPT_URL.startsWith("PASTE_")) { status("Set SCRIPT_URL in index.html first.", "err"); return; }
-  const details = $("details").value.trim();
-  if (!details) { status("Write the details first.", "err"); return; }
-  const btn = $("add"); btn.disabled = true; btn.textContent = "Saving…";
-  try {
-    const r = await call("POST", { action: "add", details });
-    if (r.ok) {
-      items.push({ id: r.id, logged: r.logged, details, status: "OPEN", resolved: "", note: "" });
-      save(LS_CACHE, items);
-      $("details").value = ""; status(`Logged as ${r.id}.`, "ok");
-      tab = "open"; setTabs(); render();
-    } else status(r.error || "The sheet rejected this entry.", "err");
-  } catch { status("No connection. Your text is still in the box. Try again.", "warn"); }
-  btn.disabled = false; btn.textContent = "Log discrepancy";
-});
-
-function setTabs() { document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.t === tab)); }
-document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { tab = t.dataset.t; setTabs(); render(); }));
-$("q").addEventListener("input", render);
-
-$("csv").addEventListener("click", () => {
-  const esc = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
-  const rows = [["ID", "LOGGED AT", "DETAILS", "STATUS", "RESOLVED AT", "HOURS TO RESOLVE", "RESOLUTION NOTE"]];
-  items.slice().sort((a, b) => new Date(a.logged) - new Date(b.logged)).forEach(i =>
-    rows.push([i.id, fmt(i.logged), i.details, i.status, fmt(i.resolved), i.status === "RESOLVED" ? hours(i).toFixed(2) : "", i.note]));
-  const blob = new Blob(["\ufeff" + rows.map(r => r.map(esc).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
-  const a = document.createElement("a");
-  const d = new Date();
-  a.href = URL.createObjectURL(blob);
-  a.download = `discrepancies_${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}.csv`;
-  document.body.appendChild(a); a.click(); a.remove();
-});
-
-setInterval(render, 30000);                       // keeps "open for…" ticking
-setInterval(() => refresh(true), 60000);          // picks up changes from other phones
-document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(true); });
-render(); refresh();
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id),p2=n=>String(n).padStart(2,"0");
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+let items=ld("d2_items",[]),cats=ld("d2_cats",[]),tab="open",editing=null;
+const T=s=>new Date(s).getTime(),PR={High:0,Medium:1,Low:2};
+const fmt=s=>{if(!s)return"";const d=new Date(s);return`${p2(d.getDate())}-${p2(d.getMonth()+1)}-${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const dur=ms=>{const m=Math.max(0,Math.floor(ms/6e4));if(m<1)return"under 1 min";const d=Math.floor(m/1440),h=Math.floor(m%1440/60);return d?`${d}d ${h}h`:h?`${h}h ${m%60}m`:`${m}m`};
+const hrs=i=>(T(i.resolved)-T(i.logged))/36e5;
+function el(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function msg(m,k,l,f){const s=$("st");s.className="show "+k;s.textContent=m;if(l){const b=el("button","btn g",l);b.style.marginLeft="8px";b.onclick=f;s.appendChild(b)}}
+async function call(method,payload){
+  const code=ld("d2_code","");let url=SCRIPT_URL,o={method};
+  if(method==="GET")url+="?action=list&code="+encodeURIComponent(code);else o.body=JSON.stringify({...payload,code});
+  const r=await(await fetch(url,o)).json();
+  if(r.error==="unauthorized"){const c=prompt("Enter the access code");if(c){sv("d2_code",c);return call(method,payload)}}
+  return r}
+/* photos: resize to ~1200px JPEG before upload */
+function picker(inp,prev){const arr=[];
+  const draw=()=>{prev.textContent="";arr.forEach((p,i)=>{const s=el("span"),im=el("img");im.src=p.url;const x=el("i","","×");x.onclick=()=>{arr.splice(i,1);draw()};s.append(im,x);prev.appendChild(s)})};
+  inp.onchange=async()=>{for(const f of inp.files){if(arr.length>=5)break;try{arr.push(await shrink(f))}catch{}}inp.value="";draw()};
+  return{get:()=>arr.map(p=>p.b64),clear:()=>{arr.length=0;draw()}}}
+function shrink(f){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const s=Math.min(1,1200/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*s;c.height=im.height*s;c.getContext("2d").drawImage(im,0,0,c.width,c.height);const url=c.toDataURL("image/jpeg",.72);URL.revokeObjectURL(u);res({url,b64:url.split(",")[1]})};im.onerror=rej;im.src=u})}
+const pAdd=picker($("ph"),$("pv")),pEdit=picker($("e_f"),$("e_pv"));
+function fillCats(sel,cur){sel.textContent="";const l=cats.slice();if(cur&&!l.includes(cur))l.push(cur);["",...l].forEach(c=>{const o=el("option","",c||"(none)");o.value=c;sel.appendChild(o)});sel.value=cur||""}
+function upsert(it){const i=items.findIndex(x=>x.id===it.id);i<0?items.push(it):items[i]=it;sv("d2_items",items)}
+async function refresh(q){
+  if(SCRIPT_URL.startsWith("PASTE_")){msg("Set SCRIPT_URL in index.html first.","err");return}
+  try{const r=await call("GET");
+    if(r.ok){items=r.items;cats=r.categories;sv("d2_items",items);sv("d2_cats",cats);$("sync").textContent="Synced "+p2(new Date().getHours())+":"+p2(new Date().getMinutes());fillCats($("cat"),$("cat").value);render()}
+    else if(!q)msg(r.error||"Could not load.","err")}
+  catch{$("sync").textContent="Offline, showing saved copy"}}
+function render(){
+  const open=items.filter(i=>i.status==="OPEN"),done=items.filter(i=>i.status==="RESOLVED"),td=new Date().toDateString();
+  $("nO").textContent=open.length;$("nT").textContent=done.filter(i=>new Date(i.resolved).toDateString()===td).length;$("nH").textContent=open.filter(i=>i.prio==="High").length;
+  $("owners").innerHTML="";[...new Set(items.map(i=>i.owner).filter(Boolean))].forEach(o=>{const e=el("option");e.value=o;$("owners").appendChild(e)});
+  $("lv").hidden=tab==="sum";$("sv").hidden=tab!=="sum";
+  if(tab==="sum")return summary();
+  let l=tab==="open"?open:tab==="resolved"?done:items.slice();
+  const q=$("q").value.trim().toLowerCase();
+  if(q)l=l.filter(i=>[i.id,i.details,i.veh,i.inv,i.owner,i.cat,i.note].join(" ").toLowerCase().includes(q));
+  l.sort(tab==="open"?(a,b)=>PR[a.prio]-PR[b.prio]||T(a.logged)-T(b.logged):tab==="resolved"?(a,b)=>T(b.resolved)-T(a.resolved):(a,b)=>T(b.logged)-T(a.logged));
+  const box=$("list");box.textContent="";
+  if(!l.length){box.appendChild(el("div","empty",tab==="open"?"No open discrepancies.":"Nothing here."));return}
+  l.forEach(i=>{const r=i.status==="RESOLVED",c=el("div","item"+(r?" r":""));
+    const top=el("div","top"),b=el("b","",i.id);top.append(b,el("span","","Logged "+fmt(i.logged)));
+    const ch=el("div","chips");ch.appendChild(el("span","chip "+i.prio,i.prio));
+    [i.veh,i.inv&&"Inv "+i.inv,i.cat,i.owner&&"Owner: "+i.owner].filter(Boolean).forEach(x=>ch.appendChild(el("span","chip",x)));
+    c.append(top,ch,el("div","det",i.details));
+    if(i.photos.length){const ph=el("div","ph");i.photos.forEach(u=>{const a=el("a");a.href=u;a.target="_blank";a.rel="noopener";const im=el("img");im.loading="lazy";im.alt="Photo";im.src="https://drive.google.com/thumbnail?id="+(u.match(/\/d\/([^/]+)/)||[])[1]+"&sz=w200";a.appendChild(im);ph.appendChild(a)});c.appendChild(ph)}
+    c.appendChild(el("div","meta"+(r?" d":""),r?`Resolved ${fmt(i.resolved)} · took ${dur(T(i.resolved)-T(i.logged))}`:`Open for ${dur(Date.now()-T(i.logged))}`));
+    if(r&&i.note)c.appendChild(el("div","note","Note: "+i.note));
+    if(i.edited)c.appendChild(el("div","note","Edited "+fmt(i.edited)));
+    const a=el("div","acts"),b1=el("button","btn"+(r?" g":""),r?"Reopen":"Mark resolved"),b2=el("button","btn g","Edit");
+    b1.onclick=()=>act(i,r?"reopen":"resolve",b1);b2.onclick=()=>openEdit(i);a.append(b1,b2);c.appendChild(a);box.appendChild(c)})}
+async function act(i,action,btn){let note="";if(action==="resolve"){note=prompt("How was it resolved? (optional)","");if(note===null)return}
+  btn.disabled=true;try{const r=await call("POST",{action,id:i.id,note});if(r.ok){upsert(r.item);render()}else{msg(r.error||"Could not update.","err");btn.disabled=false}}catch{msg("No connection. Try again when online.","warn");btn.disabled=false}}
+$("add").onclick=async()=>{
+  $("st").className="";if(SCRIPT_URL.startsWith("PASTE_")){msg("Set SCRIPT_URL in index.html first.","err");return}
+  const details=$("details").value.trim();if(!details){msg("Write the details first.","err");return}
+  const b=$("add");b.disabled=true;b.textContent=pAdd.get().length?"Saving with photos…":"Saving…";
+  try{const r=await call("POST",{action:"add",details,veh:$("veh").value,inv:$("inv").value,cat:$("cat").value,prio:$("prio").value,owner:$("owner").value,photos:pAdd.get()});
+    if(r.ok){upsert(r.item);["details","veh","inv","owner"].forEach(k=>$(k).value="");$("cat").value="";$("prio").value="Medium";pAdd.clear();msg("Logged as "+r.item.id+".","ok");tab="open";setTabs();render()}
+    else msg(r.error||"The sheet rejected this entry.","err")}
+  catch{msg("No connection. Your text is still in the box. Try again.","warn")}
+  b.disabled=false;b.textContent="Log discrepancy"};
+function openEdit(i){editing=i;$("eh").textContent="Edit "+i.id;$("e_d").value=i.details;$("e_v").value=i.veh;$("e_i").value=i.inv;fillCats($("e_c"),i.cat);$("e_p").value=i.prio;$("e_o").value=i.owner;$("e_n").value=i.note;$("e_st").textContent="";pEdit.clear();$("dlg").showModal()}
+$("e_x").onclick=()=>$("dlg").close();
+$("e_s").onclick=async()=>{const b=$("e_s");b.disabled=true;$("e_st").textContent="";
+  try{const r=await call("POST",{action:"edit",id:editing.id,details:$("e_d").value,veh:$("e_v").value,inv:$("e_i").value,cat:$("e_c").value,prio:$("e_p").value,owner:$("e_o").value,note:$("e_n").value,photos:pEdit.get()});
+    if(r.ok){upsert(r.item);$("dlg").close();render()}else $("e_st").textContent=r.error||"Could not save."}
+  catch{$("e_st").textContent="No connection. Try again."}b.disabled=false};
+/* summary */
+function range(){const n=new Date(),s=new Date(n.getFullYear(),n.getMonth(),n.getDate()),mon=new Date(s);mon.setDate(s.getDate()-((s.getDay()+6)%7));const v=$("per").value;
+  if(v==="tw")return[mon,new Date(+mon+6048e5)];if(v==="lw")return[new Date(+mon-6048e5),mon];
+  if(v==="tm")return[new Date(n.getFullYear(),n.getMonth(),1),new Date(n.getFullYear(),n.getMonth()+1,1)];
+  if(v==="30")return[new Date(+s-29*864e5),new Date(+s+864e5)];return[new Date(0),new Date(9e12)]}
+function stats(){const[a,z]=range(),inn=s=>s&&T(s)>=+a&&T(s)<+z;
+  const raised=items.filter(i=>inn(i.logged)),res=items.filter(i=>i.status==="RESOLVED"&&inn(i.resolved)),open=items.filter(i=>i.status==="OPEN");
+  const cnt=(l,f)=>{const m={};l.forEach(i=>{const k=f(i)||"Unassigned";m[k]=(m[k]||0)+1});return Object.entries(m).sort((x,y)=>y[1]-x[1])};
+  const avg=res.length?res.reduce((s,i)=>s+hrs(i),0)/res.length:null;
+  return{raised,res,open,avg,max:res.length?Math.max(...res.map(hrs)):null,high:open.filter(i=>i.prio==="High").length,
+    oldest:open.length?open.reduce((x,y)=>T(x.logged)<T(y.logged)?x:y):null,byCat:cnt(raised,i=>i.cat||"No category"),byOwner:cnt(open,i=>i.owner)}}
+function summary(){const s=stats(),b=$("sbody");b.textContent="";
+  const t=el("div","tiles");[["Raised",s.raised.length],["Resolved",s.res.length],["Open now",s.open.length],["Avg hrs to resolve",s.avg==null?"–":s.avg.toFixed(1)],["Longest (hrs)",s.max==null?"–":s.max.toFixed(1)],["High priority open",s.high]]
+    .forEach(([k,v])=>{const d=el("div","tile");d.append(el("b","",v),el("span","",k));t.appendChild(d)});b.appendChild(t);
+  if(s.oldest)b.appendChild(el("div","note","Oldest open: "+s.oldest.id+" · "+dur(Date.now()-T(s.oldest.logged))));
+  [["Raised by category",s.byCat],["Open now by owner",s.byOwner]].forEach(([h,l])=>{b.appendChild(el("h3","",h));if(!l.length)b.appendChild(el("div","note","None"));l.forEach(([k,n])=>{const r=el("div","row");r.append(el("span","",k),el("b","",n));b.appendChild(r)})})}
+$("per").onchange=summary;
+$("cp").onclick=()=>{const s=stats(),o=$("per").options[$("per").selectedIndex].text;
+  const x=`Discrepancy summary (${o})\nRaised: ${s.raised.length}\nResolved: ${s.res.length}\nOpen now: ${s.open.length} (${s.high} high priority)\nAvg time to resolve: ${s.avg==null?"-":s.avg.toFixed(1)+" hrs"}`;
+  navigator.clipboard.writeText(x).then(()=>{$("cp").textContent="Copied";setTimeout(()=>$("cp").textContent="Copy summary",1500)},()=>prompt("Copy this:",x))};
+function setTabs(){document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.t===tab))}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{tab=t.dataset.t;setTabs();render()});
+$("q").oninput=render;
+$("csv").onclick=()=>{const e=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  const rows=[["ID","LOGGED AT","VEH NO","INVOICE NO","CATEGORY","PRIORITY","OWNER","DETAILS","STATUS","RESOLVED AT","HOURS TO RESOLVE","RESOLUTION NOTE","PHOTOS"]];
+  items.slice().sort((a,b)=>T(a.logged)-T(b.logged)).forEach(i=>rows.push([i.id,fmt(i.logged),i.veh,i.inv,i.cat,i.prio,i.owner,i.details,i.status,fmt(i.resolved),i.status==="RESOLVED"?hrs(i).toFixed(2):"",i.note,i.photos.join(" ")]));
+  const a=el("a"),d=new Date();a.href=URL.createObjectURL(new Blob(["\ufeff"+rows.map(r=>r.map(e).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}));
+  a.download=`discrepancies_${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}.csv`;document.body.appendChild(a);a.click();a.remove()};
+setInterval(()=>{if(tab!=="sum"&&!$("dlg").open)render()},3e4);setInterval(()=>{if(!$("dlg").open)refresh(true)},6e4);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!$("dlg").open)refresh(true)});
+fillCats($("cat"),"");render();refresh();
+</script></body></html>
